@@ -1,9 +1,14 @@
 from flask import Flask, url_for, render_template
 from markupsafe import escape
+from forms import RegistrationForm, LoginForm
+from flask import flash
 
 
 # app a Flask class instance
 app = Flask(__name__)
+
+app.config['SECRET_KEY'] = '6ee30fca55ef434eb1e0d0401637c1cb'
+
 
 posts=[
         {   'author': 'Qi Zhi Li',
@@ -55,12 +60,20 @@ def show_subpath(subpath):
 def about():
     return render_template('home.html', title='About')
 
-@app.route('/login')
+
+
+@app.route("/register", methods=['GET', 'POST'])
+def register():
+    form = RegistrationForm()
+    if form.validate_on_submit():
+        flash(f'Account created for {form.usrname.data}!', 'success')
+    return render_template('register.html', title='Register', form=form)
+
+
+@app.route("/login")
 def login():
-    return 'login'
-with app.test_request_context():
-    print(url_for('profile', username='Qi Zhi'))
-    print(url_for('login', next='/'))
+    form = LoginForm()
+    return render_template('login.html', title='Login', form=form)
 
 if __name__=='__main__':
     app.run(debug=True)

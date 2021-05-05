@@ -1,0 +1,18 @@
+h1 {
+  color: red;
+}
+
+.title {
+  color: yellow !important;
+}
+
+#introduction {
+  color: blue;
+}
+
+p {
+  color: white;
+  background-color: blue;
+  padding: 5px;
+  border: 1px solid black;
+}
