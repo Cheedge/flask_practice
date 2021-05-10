@@ -1,13 +1,10 @@
-from flask import Flask, url_for, render_template
+from flask import url_for, render_template
+from flaskblog.forms import RegistrationForm, LoginForm
 from markupsafe import escape
-from forms import RegistrationForm, LoginForm
-from flask import flash
+from flask import flash, redirect
 
-
-# app a Flask class instance
-app = Flask(__name__)
-
-app.config['SECRET_KEY'] = '6ee30fca55ef434eb1e0d0401637c1cb'
+from flaskblog import app, db, bcrypt
+from flaskblog.models import User, Post
 
 
 posts=[
@@ -36,9 +33,9 @@ def index():
 def home():
     return render_template('home.html', posts=posts)
 
-@app.route('/hello/<title>')
-def hello(title):
-        return render_template('hello.html', name=title)
+@app.route('/hello/<name>')
+def hello(name):
+        return render_template('hello.html', name=name)
 
 @app.route('/user/<username>')
 def profile(username):
@@ -66,14 +63,25 @@ def about():
 def register():
     form = RegistrationForm()
     if form.validate_on_submit():
-        flash(f'Account created for {form.usrname.data}!', 'success')
+        hashed_pw = bcrypt.generate_password_hash(form.passwd.data).decode('utf-8')
+        user = User(username=form.usrname.data, email=form.email.data, password=hashed_pw)
+        db.session.add(user)
+        db.session.commit()
+        #flash(f'Account created for {form.usrname.data}!', 'success')
+        flash('Account create success, you are able to login', 'success')
+        return redirect(url_for('login'))
     return render_template('register.html', title='Register', form=form)
 
 
-@app.route("/login")
+@app.route("/login", methods=['GET', 'POST'])
 def login():
     form = LoginForm()
+    if form.validate_on_submit():
+        if form.email.data == 'flask@blog.com' and form.passwd.data == '123':
+            flash('you have login success')
+            return redirect(url_for('home'))
+        else:
+            flash('unsuccess, check it', 'danger')
     return render_template('login.html', title='Login', form=form)
 
-if __name__=='__main__':
-    app.run(debug=True)
+
